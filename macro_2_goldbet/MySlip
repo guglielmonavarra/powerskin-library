@@ -1,0 +1,255 @@
+Rem Attribute VBA_ModuleType=VBAClassModule
+Option VBASupport 1
+Option ClassModule
+Option Explicit
+
+Public completeDAG As MyTree
+Public nEvents As Integer
+Public slipRows As Object
+Public startRng As Range
+Public fixedRows As Object
+Public possibleWinC As Double
+Public Stakes As Collection
+Public bonusAddedC As Double
+Public bonuses As Collection
+
+Private Sub Class_Initialize()
+    Set completeDAG = New MyTree
+    Set slipRows = CreateObject("Scripting.Dictionary")
+    nEvents = 0
+    Set fixedRows = CreateObject("Scripting.Dictionary")
+    possibleWinC = 0
+    bonusAddedC = 0
+    Set Stakes = New Collection
+    Set bonuses = New Collection
+End Sub
+
+Public Sub buildFromRange(startTableRng As Variant)
+'Builds the slip from a starting range
+    Dim i, j, k As Integer
+    Dim tempNode, tempNode1 As MyNode
+    Dim tempDict As Object
+    
+    Set startRng = startTableRng
+        
+    nEvents = 0
+    For i = 0 To 27
+        If StrComp(startTableRng.Offset(rowoffset:=i).Value, "", vbTextCompare) = 0 Then
+            GoTo FINE
+        End If
+        
+        'Fixed events
+        If startTableRng.Offset(rowoffset:=i, columnoffset:=1).Value = 1 Then
+            fixedRows(startTableRng.Offset(rowoffset:=i).Value) = 1
+        End If
+        
+        For j = 2 To 17
+            If StrComp(startTableRng.Offset(rowoffset:=i, columnoffset:=j).Value, "", vbTextCompare) = 0 Then
+                GoTo NEXT_ROW
+            End If
+            Set tempNode = New MyNode
+            tempNode.My_Event = startTableRng.Offset(rowoffset:=i).Value
+            tempNode.ID = CStr(tempNode.My_Event) + "," + CStr(j - 1)
+            tempNode.My_Value = startTableRng.Offset(rowoffset:=i, columnoffset:=j).Value
+            
+            If Not slipRows.exists(tempNode.My_Event) Then
+                Set slipRows(tempNode.My_Event) = CreateObject("Scripting.Dictionary")
+            End If
+            Set tempDict = slipRows(tempNode.My_Event)
+            tempDict(tempNode.ID) = 1
+            
+            For k = 2 To 17
+                If StrComp(startTableRng.Offset(rowoffset:=i + 1, columnoffset:=k).Value, "", vbTextCompare) = 0 Then
+                    GoTo NEXT_ODD
+                End If
+                Set tempNode1 = New MyNode
+                tempNode1.My_Event = startTableRng.Offset(rowoffset:=i + 1).Value
+                tempNode1.ID = CStr(tempNode1.My_Event) + "," + CStr(k - 1)
+                tempNode1.My_Value = startTableRng.Offset(rowoffset:=i + 1, columnoffset:=k).Value
+                completeDAG.addEdge tempNode, tempNode1
+            Next k
+NEXT_ODD:
+        Next j
+NEXT_ROW:
+       nEvents = nEvents + 1
+    Next i
+    
+FINE:
+End Sub
+
+Public Function buildFromRangeOnlyEvents(startTableRng As Variant, evIDs As Variant) As Variant
+'Builds the slip from a starting range, only for evants with a given ID
+    Dim i, j, k, q As Integer
+    Dim tempNode, tempNode1 As MyNode
+    Dim tempDict As Object
+    Dim tempDAG As MyTree
+        
+    Set tempDAG = New MyTree
+    Set tempDAG.bTable = completeDAG.bTable
+    For i = 0 To 27
+        If Not evIDs.exists(i + 1) Then
+            GoTo NEXT_ROW
+        End If
+        If StrComp(startTableRng.Offset(rowoffset:=i).Value, "", vbTextCompare) = 0 Then
+            GoTo FINE
+        End If
+        For j = 2 To 17
+            If StrComp(startTableRng.Offset(rowoffset:=i, columnoffset:=j).Value, "", vbTextCompare) = 0 Then
+                GoTo NEXT_ROW
+            End If
+            Set tempNode = New MyNode
+            tempNode.My_Event = startTableRng.Offset(rowoffset:=i).Value
+            tempNode.ID = CStr(tempNode.My_Event) + "," + CStr(j - 1)
+            tempNode.My_Value = startTableRng.Offset(rowoffset:=i, columnoffset:=j).Value
+            
+            If Not slipRows.exists(tempNode.My_Event) Then
+                Set slipRows(tempNode.My_Event) = CreateObject("Scripting.Dictionary")
+            End If
+            Set tempDict = slipRows(tempNode.My_Event)
+            tempDict(tempNode.ID) = 1
+            
+            q = 1
+            For k = 2 To 17
+                Do While Not evIDs.exists(i + 1 + q)
+                    q = q + 1
+                    If StrComp(startTableRng.Offset(rowoffset:=i + q).Value, "", vbTextCompare) = 0 Then
+                        GoTo FINE
+                    End If
+                Loop
+                If StrComp(startTableRng.Offset(rowoffset:=i + q, columnoffset:=k).Value, "", vbTextCompare) = 0 Then
+                    GoTo NEXT_ODD
+                End If
+                Set tempNode1 = New MyNode
+                tempNode1.My_Event = startTableRng.Offset(rowoffset:=i + q).Value
+                tempNode1.ID = CStr(tempNode1.My_Event) + "," + CStr(k - 1)
+                tempNode1.My_Value = startTableRng.Offset(rowoffset:=i + q, columnoffset:=k).Value
+                tempDAG.addEdge tempNode, tempNode1
+            Next k
+NEXT_ODD:
+        Next j
+NEXT_ROW:
+    Next i
+    
+FINE:
+Set buildFromRangeOnlyEvents = tempDAG
+End Function
+
+Public Function getKpla(k As Variant) As Variant
+'Returns the number of combinations associated with a kple
+    Dim key, key1 As Variant
+    Dim c, ev As Variant
+    Dim EventIDs As Collection  'Collection of Event IDs
+    Dim i, j As Integer
+    Dim combz As Variant
+    Dim tempDict As Object
+    Dim multiplier As Double: multiplier = 1
+
+    getKpla = 0
+    'Combinations with a number of elements less than the fixed rows are not possible
+    If k < fixedRows.Count Then
+        GoTo FINE
+    End If
+    
+    'Special case (multiple)
+    If k = nEvents Then
+        For Each key In slipRows(1).keys
+            For Each key1 In slipRows(nEvents).keys
+                getKpla = getKpla + completeDAG.countPaths(key, key1)
+            Next key1
+        Next key
+        possibleWinC = possibleWinC + completeDAG.possibleWin * Stakes(1)
+        bonusAddedC = bonusAddedC + completeDAG.bonusAdded * Stakes(1)
+        Set bonuses = mergeCollections(bonuses, completeDAG.bonuses)
+        GoTo FINE
+    End If
+    
+    'Special case, single
+    If k = 1 Then
+        Dim tempWin As Double
+        Dim tempBonus As Double
+        Set completeDAG.rowWins(1) = New Collection
+        If fixedRows.Count = 0 Then
+            getKpla = completeDAG.Vertices.Count
+            For i = 1 To nEvents
+                tempWin = 0
+                tempBonus = 0
+                For Each key In slipRows(i).keys
+                    'Add bonus
+                    If completeDAG.bTable.multipliers.exists(NElementsOverThr(ArrayToCollection(Array(completeDAG.Vertices(key))), completeDAG.bTable.oddsThr)) Then
+                         multiplier = completeDAG.bTable.multipliers(NElementsOverThr(ArrayToCollection(Array(completeDAG.Vertices(key))), completeDAG.bTable.oddsThr))
+                    End If
+                    completeDAG.rowWins(1).Add completeDAG.Vertices(key).My_Value * multiplier
+                    If isSaveCombz() Then
+                         completeDAG.combOut(completeDAG.Vertices(key).ID & "/") = completeDAG.Vertices(key).My_Value * multiplier
+                    End If
+                    tempWin = tempWin + completeDAG.Vertices(key).My_Value * multiplier
+                    tempBonus = tempBonus + completeDAG.Vertices(key).My_Value * (multiplier - 1)
+                    bonuses.Add completeDAG.Vertices(key).My_Value * (multiplier - 1)
+                Next key
+                possibleWinC = possibleWinC + tempWin * Stakes(nEvents)
+                bonusAddedC = bonusAddedC + tempBonus * Stakes(nEvents)
+            Next i
+        Else
+            For Each i In fixedRows
+                tempWin = 0
+                tempBonus = 0
+                getKpla = getKpla + slipRows(i).Count
+                For Each key In slipRows(i).keys
+                    'Add bonus
+                    If completeDAG.bTable.multipliers.exists(NElementsOverThr(ArrayToCollection(Array(completeDAG.Vertices(key))), completeDAG.bTable.oddsThr)) Then
+                         multiplier = completeDAG.bTable.multipliers(NElementsOverThr(ArrayToCollection(Array(completeDAG.Vertices(key))), completeDAG.bTable.oddsThr))
+                    End If
+                    completeDAG.rowWins(1).Add completeDAG.Vertices(key).My_Value * multiplier
+                    If isSaveCombz() Then
+                         completeDAG.combOut(completeDAG.Vertices(key).ID & "/") = completeDAG.Vertices(key).My_Value * multiplier
+                    End If
+                    tempWin = tempWin + completeDAG.Vertices(key).My_Value * multiplier
+                    tempBonus = tempBonus + completeDAG.Vertices(key).My_Value * (multiplier - 1)
+                    bonuses.Add completeDAG.Vertices(key).My_Value * (multiplier - 1)
+                Next key
+                possibleWinC = possibleWinC + tempWin * Stakes(nEvents)
+                bonusAddedC = bonusAddedC + tempBonus * Stakes(nEvents)
+            Next i
+        End If
+        GoTo FINE
+    End If
+    
+    Dim tempDAG As MyTree
+    Dim cDict As Object
+    Set EventIDs = New Collection
+    For i = 1 To nEvents
+        EventIDs.Add i
+    Next i
+    Set combz = GetAllCombs(EventIDs, k)
+    
+    For Each c In combz
+        'Skip combinations not containing the fixed rows
+        If fixedRows.Count > 0 Then
+            j = 0
+            For Each i In c
+                If fixedRows.exists(i) Then
+                    j = j + 1
+                End If
+            Next i
+            If j < fixedRows.Count Then
+                GoTo NEXT_COMB
+            End If
+        End If
+    
+        Set cDict = collectionToDict(c)
+        Set tempDAG = buildFromRangeOnlyEvents(startRng, cDict)
+        Set tempDAG.bTable = completeDAG.bTable
+        For Each key In slipRows(c(1)).keys
+            For Each key1 In slipRows(c(k)).keys
+                getKpla = getKpla + tempDAG.countPaths(key, key1)
+            Next key1
+        Next key
+        Set completeDAG.rowWins = mergeCollectionMaps(completeDAG.rowWins, tempDAG.rowWins)
+        Set completeDAG.combOut = mergeDicts(completeDAG.combOut, tempDAG.combOut)
+        possibleWinC = possibleWinC + tempDAG.possibleWin * Stakes(nEvents - k + 1)
+        bonusAddedC = bonusAddedC + tempDAG.bonusAdded * Stakes(nEvents - k + 1)
+        Set bonuses = mergeCollections(bonuses, tempDAG.bonuses)
+NEXT_COMB:
+    Next c
+FINE:
+End Function

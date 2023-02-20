@@ -1,0 +1,208 @@
+ 
+Rem Attribute VBA_ModuleType=VBAModule
+Option VBASupport 1
+Option Explicit
+
+Function GetNameFromNumber(k As Variant) As String
+'Maps kpla to its common name
+    If k > 4 Then
+        GetNameFromNumber = CStr(k) & "-fold"
+    ElseIf k = 4 Then
+        GetNameFromNumber = "Quadruple"
+    ElseIf k = 3 Then
+        GetNameFromNumber = "Triple"
+    ElseIf k = 2 Then
+        GetNameFromNumber = "Double"
+    Else
+        GetNameFromNumber = "Single"
+    End If
+End Function
+
+Public Sub GetAllCombsUtil(v As Variant, ByRef out As Variant, ByRef out_final As Variant, i As Long, n As Long, k As Long)
+    Dim x, y As Variant
+    Dim j As Long
+
+    'Base case
+    If k = 0 Then
+        x = out_final.Count
+        out_final.Add item:=New Collection, key:=CStr(x)
+        For Each y In out
+            out_final(CStr(x)).Add y
+        Next
+        Exit Sub
+    End If
+    
+    For j = i To n
+        Dim out_1 As Collection
+        
+        Set out_1 = New Collection
+        For Each y In out
+            out_1.Add y
+        Next
+        out_1.Add item:=v(j)
+        
+        GetAllCombsUtil v, out_1, out_final, j + 1, n, k - 1
+    Next j
+End Sub
+
+Public Function GetAllCombs(v As Variant, ByVal k As Long) As Collection
+    'Gets all the combinations of length k from vector v
+    Dim out, out_final As Collection
+    
+    Set out = New Collection
+    Set out_final = New Collection
+    
+    GetAllCombsUtil v, out, out_final, 1, v.Count, k
+    
+    Set GetAllCombs = out_final
+End Function
+
+Public Function collectionToDict(coll As Variant) As Variant
+'Transforms a collection to a dict object
+    Dim el As Variant
+    Dim outDict As Object
+    
+    Set outDict = CreateObject("Scripting.Dictionary")
+    For Each el In coll
+        outDict(el) = 1
+    Next el
+    
+    Set collectionToDict = outDict
+End Function
+
+Public Function mergeCollectionMaps(m1, m2)
+     'Merges two maps of collections
+     Dim k1, k2, e1, e2 As Variant
+     Dim outDict As Object
+     
+     Set outDict = CreateObject("Scripting.Dictionary")
+     
+     For Each k1 In m1.keys
+          Set outDict(k1) = New Collection
+          For Each e1 In m1(k1)
+               outDict(k1).Add e1
+          Next e1
+          For Each k2 In m2.keys
+               If Not outDict.exists(k2) Then
+                    Set outDict(k2) = New Collection
+               End If
+               For Each e2 In m2(k2)
+                    outDict(k2).Add e2
+               Next e2
+          Next k2
+     Next k1
+     
+     Set mergeCollectionMaps = outDict
+End Function
+
+Public Function mergeDicts(m1, m2)
+     Dim k1, k2 As Variant
+     Dim outDict As Object
+     
+     Set outDict = CreateObject("Scripting.Dictionary")
+     
+     For Each k1 In m1
+          outDict(k1) = m1(k1)
+          For Each k2 In m2
+               outDict(k2) = m2(k2)
+          Next k2
+     Next k1
+     
+     Set mergeDicts = outDict
+End Function
+
+Public Function GetMinCollection(coll)
+     Dim e1 As Variant
+     GetMinCollection = 1000000#
+     
+     For Each e1 In coll
+          If e1 < GetMinCollection Then
+              GetMinCollection = e1
+          End If
+     Next e1
+     
+End Function
+
+Public Function GetMaxCollection(coll)
+     Dim e1 As Variant
+     GetMaxCollection = -1000000#
+     
+     For Each e1 In coll
+          If e1 > GetMaxCollection Then
+              GetMaxCollection = e1
+          End If
+     Next e1
+End Function
+
+Public Function CopyCollection(ByVal source As Collection) As Collection
+    Dim result As New Collection
+    Dim item As Variant
+    For Each item In source
+        result.Add item
+    Next
+    Set CopyCollection = result
+End Function
+
+Public Function NElementsOverThr(coll, thr)
+     'Finds the number of elements in the collection of nodes over a certain threshold
+     Dim e1 As Variant
+     
+     NElementsOverThr = 0
+     For Each e1 In coll
+          If e1.My_Value >= thr Then
+               NElementsOverThr = NElementsOverThr + 1
+          End If
+     Next e1
+End Function
+
+Public Function ArrayToCollection(Arr)
+     Dim outColl As Collection
+     Dim i As Integer
+     
+     Set outColl = New Collection
+     
+     For i = LBound(Arr, 1) To UBound(Arr, 1)
+          outColl.Add Arr(i)
+     Next i
+     Set ArrayToCollection = outColl
+End Function
+
+
+Public Function AdresseLocal$(ByVal fullPath$)
+    'Finds local path for a OneDrive file URL, using environment variables of OneDrive
+    'Reference https://stackoverflow.com/questions/33734706/excels-fullname-property-with-onedrive
+    'Authors: Philip Swannell 2019-01-14, MatChrupczalski 2019-05-19, Horoman 2020-03-29, P.G.Schild 2020-04-02
+    Dim ii&
+    Dim iPos&
+    Dim oneDrivePath$
+    Dim endFilePath$
+    Dim NbSlash
+    
+    If Left(fullPath, 8) = "https://" Then
+        If InStr(1, fullPath, "sharepoint.com/") <> 0 Then 'Commercial OneDrive
+            NbSlash = 4
+        Else 'Personal OneDrive
+            NbSlash = 2
+        End If
+        iPos = 8 'Last slash in https://
+        For ii = 1 To NbSlash
+            iPos = InStr(iPos + 1, fullPath, "/")
+        Next ii
+        endFilePath = Mid(fullPath, iPos)
+        endFilePath = Replace(endFilePath, "/", Application.PathSeparator)
+        For ii = 1 To 3
+            oneDrivePath = Environ(Choose(ii, "OneDriveCommercial", "OneDriveConsumer", "OneDrive"))
+            If 0 < Len(oneDrivePath) Then Exit For
+        Next ii
+        AdresseLocal = oneDrivePath & endFilePath
+        While Len(Dir(AdresseLocal, vbDirectory)) = 0 And InStr(2, endFilePath, Application.PathSeparator) > 0
+            endFilePath = Mid(endFilePath, InStr(2, endFilePath, Application.PathSeparator))
+            AdresseLocal = oneDrivePath & endFilePath
+        Wend
+    Else
+        AdresseLocal = fullPath
+    End If
+End Function
+
+
+

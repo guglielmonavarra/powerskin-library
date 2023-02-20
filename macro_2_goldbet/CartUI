@@ -1,0 +1,185 @@
+Rem Attribute VBA_ModuleType=VBAModule
+Option VBASupport 1
+Option Explicit
+
+Public Enum ExpComb
+     YES = 1
+     NO = 0
+End Enum
+
+Dim tempSlip As MySlip
+Dim minOdds, maxOdds As Double
+
+Public Function isSaveCombz()
+     isSaveCombz = False
+     If ThisWorkbook.Sheets("Cart").Range("save_combz_enum").Value = YES Then
+          isSaveCombz = True
+     End If
+End Function
+
+Public Function bonusFromRange()
+     Dim bonus_lookup As Range: Set bonus_lookup = ThisWorkbook.Sheets("Cart").Range("bonus_lookup")
+     Dim c As Range
+     Dim outMap As Object
+
+     Set outMap = New BonusTable
+     
+     For Each c In bonus_lookup
+          outMap.multipliers(c.Value) = c.Offset(columnoffset:=1).Value
+     Next c
+     outMap.oddsThr = ThisWorkbook.Sheets("Cart").Range("odds_thr")
+     
+     Set bonusFromRange = outMap
+End Function
+
+Sub writeNple(startRange As Variant)
+'Writes the results
+    Dim i As Integer
+    Dim uStake As Double
+    
+    minOdds = 1000000000#
+    maxOdds = 1
+        
+    For i = 0 To tempSlip.nEvents - 1
+     If ThisWorkbook.Sheets("Cart").Range("Active_start").Offset(rowoffset:=i).Value > 0 Then
+        If StrComp(startRange.Offset(rowoffset:=i, columnoffset:=5).Value, "", vbTextCompare) = 0 Then
+            uStake = ThisWorkbook.Sheets("Cart").Range("U2").Value
+        Else
+            uStake = startRange.Offset(rowoffset:=i, columnoffset:=5).Value
+        End If
+    
+        startRange.Offset(rowoffset:=i, columnoffset:=0).Value = GetNameFromNumber(tempSlip.nEvents - i)
+        startRange.Offset(rowoffset:=i, columnoffset:=1).Value = tempSlip.getKpla(tempSlip.nEvents - i)
+        If startRange.Offset(rowoffset:=i, columnoffset:=1).Value > 0 Then
+          minOdds = WorksheetFunction.Min(minOdds, GetMinCollection(tempSlip.completeDAG.rowWins(tempSlip.nEvents - i)))
+          maxOdds = WorksheetFunction.Max(maxOdds, GetMaxCollection(tempSlip.completeDAG.rowWins(tempSlip.nEvents - i)))
+          startRange.Offset(rowoffset:=i, columnoffset:=2).Value = GetMaxCollection(tempSlip.completeDAG.rowWins(tempSlip.nEvents - i)) * uStake
+          startRange.Offset(rowoffset:=i, columnoffset:=3).Value = GetMinCollection(tempSlip.completeDAG.rowWins(tempSlip.nEvents - i)) * uStake
+        End If
+     End If
+    Next i
+End Sub
+
+Sub createSlip()
+'Creates the bet slip
+    Dim startTableRng As Range
+    
+    Set startTableRng = ThisWorkbook.Sheets("Cart").Range("start_betslip")
+    Set tempSlip = New MySlip
+    
+    Set tempSlip.completeDAG.bTable = bonusFromRange()
+    tempSlip.buildFromRange startTableRng
+End Sub
+
+Sub eval()
+'Evaluates the Cart
+On Error GoTo FINE
+ThisWorkbook.Application.Calculation = xlCalculationManual
+    Dim defaultStake As Double
+    Dim c As Variant
+    Dim i As Integer
+    
+    defaultStake = ThisWorkbook.Sheets("Cart").Range("default_stake").Value
+    
+    'Evaluation
+    Call clearMult
+    Call createSlip
+    
+    'Init stakes per type
+    Set tempSlip.Stakes = New Collection
+    i = 0
+    For Each c In ThisWorkbook.Sheets("Cart").Range("stakes_column")
+        If StrComp(ThisWorkbook.Sheets("Cart").Range("start_betslip").Offset(rowoffset:=i).Value, "", vbTextCompare) = 0 Then
+            GoTo EVAL_SLIP
+        End If
+        If StrComp(c.Value, "", vbTextCompare) <> 0 Then
+            tempSlip.Stakes.Add c.Value
+        Else
+            tempSlip.Stakes.Add defaultStake
+        End If
+        i = i + 1
+    Next c
+    
+EVAL_SLIP:
+    writeNple ThisWorkbook.Sheets("Cart").Range("start_cart_out")
+    
+    ThisWorkbook.Sheets("Cart").Range("Min_Odds").Value = minOdds
+    ThisWorkbook.Sheets("Cart").Range("Max_Odds").Value = maxOdds
+    
+    ThisWorkbook.Sheets("Cart").Range("Min_bonus").Value = GetMinCollection(tempSlip.bonuses)
+    ThisWorkbook.Sheets("Cart").Range("Max_Bonus").Value = GetMaxCollection(tempSlip.bonuses)
+    
+    If isSaveCombz() Then
+          Dim fso As Object
+          Set fso = CreateObject("Scripting.FileSystemObject")
+          Dim oFile As Object
+          Set oFile = fso.CreateTextFile(AdresseLocal$(Application.ActiveWorkbook.Path) & "\comb.csv")
+          For Each c In tempSlip.completeDAG.combOut.keys
+               oFile.WriteLine c & tempSlip.completeDAG.combOut(c)
+          Next c
+          oFile.Close
+          Set fso = Nothing
+          Set oFile = Nothing
+    End If
+FINE:
+    ThisWorkbook.Application.Calculation = xlCalculationAutomatic
+End Sub
+
+Sub EvalStakePerBetType()
+    Dim defaultStake As Double: defaultStake = ThisWorkbook.Sheets("Cart").Range("default_stake").Value
+    Dim nCombz As Long
+    Dim i As Integer
+    Dim c As Variant
+    Dim combPerRow As Collection: Set combPerRow = New Collection
+    
+    Call clearMult
+    Call createSlip
+    
+    'Padding stakes
+    Set tempSlip.Stakes = New Collection
+    i = 0
+    For Each c In ThisWorkbook.Sheets("Cart").Range("stakes_column")
+        If StrComp(ThisWorkbook.Sheets("Cart").Range("start_betslip").Offset(rowoffset:=i).Value, "", vbTextCompare) = 0 Then
+            GoTo EVAL_SLIP
+        End If
+        tempSlip.Stakes.Add 0
+        i = i + 1
+    Next c
+    
+EVAL_SLIP:
+    
+    'Spread the stake
+    nCombz = 0
+    For i = 0 To tempSlip.nEvents - 1
+     combPerRow.Add tempSlip.getKpla(tempSlip.nEvents - i)
+     If ThisWorkbook.Sheets("Cart").Range("Active_start").Offset(rowoffset:=i).Value > 0 Then
+          nCombz = nCombz + combPerRow(i + 1)
+     End If
+     
+    Next i
+    
+    i = 1
+    For Each c In ThisWorkbook.Sheets("Cart").Range("stakes_column")
+     If i > tempSlip.nEvents Then
+          GoTo END_1
+     End If
+     If StrComp(c.Value, "", vbTextCompare) = 0 And c.Offset(columnoffset:=1).Value > 0 Then
+          c.Value = defaultStake / nCombz
+     End If
+     c.Offset(columnoffset:=-4).Value = combPerRow(i)
+     c.Offset(columnoffset:=-5).Value = GetNameFromNumber(tempSlip.nEvents - i + 1)
+     i = i + 1
+    Next c
+END_1:
+End Sub
+    
+Sub clearMult()
+'Clears the Cart area
+    ThisWorkbook.Sheets("Cart").Range("cart_output") = ""
+    ThisWorkbook.Sheets("Cart").Range("Min_Odds").ClearContents
+    ThisWorkbook.Sheets("Cart").Range("Max_Odds").ClearContents
+End Sub
+
+Sub clearStakes()
+     ThisWorkbook.Sheets("Cart").Range("stakes_column").ClearContents
+End Sub
