@@ -8,7 +8,7 @@
  * 
  */
 
-package com.mondo.gaming.dto;
+package com.gianp.sistemiintegrali.model.dto;
 
 
 
@@ -18,16 +18,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.mondo.gaming.models.comb.BetCoupon;
-import com.mondo.gaming.utils.ModelBuilder;
-import com.mondo.gaming.utils.Validatable;
-
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -40,104 +30,88 @@ import lombok.Setter;
 @Getter
 @Setter
 @Builder
-@JsonIgnoreProperties(ignoreUnknown = true)
 @AllArgsConstructor
 @NoArgsConstructor
-@JsonInclude(Include.NON_NULL)
-@ApiModel(description = "Bet coupon model.")
-public class BetCouponDto implements Validatable, ModelBuilder<BetCoupon, BetCouponDto> {
+public class BetCouponDto {
 
-    @ApiModelProperty(value = "Coupon ticket Id.")
+    //@ApiModelProperty(value = "Coupon ticket Id.")
     private Integer ticketId;
 
-    @ApiModelProperty(value = "Coupon session Id.")
+    //@ApiModelProperty(value = "Coupon session Id.")
     private String sessionId;    
     
-    @ApiModelProperty(value = "If bet it's for live side.")
-    private Boolean isLive;    
+    //@ApiModelProperty(value = "If bet it's for live side.")
+    private ScheduleType type;
    
-    @ApiModelProperty(value = "Selection name.")
+    //@ApiModelProperty(value = "Selection name.")
     private String selName;  
     
-    @ApiModelProperty(value = "Selection Id.")
+    //@ApiModelProperty(value = "Selection Id.")
     private Long selId;      
     
-    @ApiModelProperty(value = "Odds Id.")
+    //@ApiModelProperty(value = "Odds Id.")
     private Long oddsId;   
     
-    @ApiModelProperty(value = "Odds Value.")
+    //@ApiModelProperty(value = "Odds Value.")
     private BigDecimal oddsValue;
 
-    @ApiModelProperty(value = "SBV specifier.")
+    //@ApiModelProperty(value = "SBV specifier.")
     private String spread;    
     
-    @ApiModelProperty(value = "Market Id.")
+    //@ApiModelProperty(value = "Market Id.")
     private Long markId;
     
-    @ApiModelProperty(value = "Market Type Id.")
+    //@ApiModelProperty(value = "Market Type Id.")
     private String markTypId;    
     
-    @ApiModelProperty(value = "Market name.")
+    //@ApiModelProperty(value = "Market name.")
     private String markName;     
     
-    @ApiModelProperty(value = "Match Id.")
+    //@ApiModelProperty(value = "Match Id.")
     private Long evtId;   
 
-    @ApiModelProperty(value = "Match ADM Id.")
+    //@ApiModelProperty(value = "Match ADM Id.")
     private String admId;    
     
-    @ApiModelProperty(value = "Event name.")
+    //@ApiModelProperty(value = "Event name.")
     private String evtName;
 
-    @ApiModelProperty(value = "Event date.")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm")
+    //@ApiModelProperty(value = "Event date.")
+    //@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm")
     private LocalDateTime evnDate;    
     
-    @ApiModelProperty(value = "Event date timestamp.")
+    //@ApiModelProperty(value = "Event date timestamp.")
     private Long evnDateTs;
     
-    @ApiModelProperty(value = "Sport Id.")
+    //@ApiModelProperty(value = "Sport Id.")
     private Long spId;      
     
-    @ApiModelProperty(value = "Sport name.")
+    //@ApiModelProperty(value = "Sport name.")
     private String spName;     
     
-    @ApiModelProperty(value = "Category Id.")
+    //@ApiModelProperty(value = "Category Id.")
     private Long ctId;      
     
-    @ApiModelProperty(value = "Category name.")
+    //@ApiModelProperty(value = "Category name.")
     private String ctName;
 
-    @ApiModelProperty(value = "Tournament Id.")
+    //@ApiModelProperty(value = "Tournament Id.")
     private Long trId;      
 
-    @ApiModelProperty(value = "Tournament name.")
+    //@ApiModelProperty(value = "Tournament name.")
     private String trName;  
     
-    @ApiModelProperty(value = "If bet it's for virtual.")
+    //@ApiModelProperty(value = "If bet it's for virtual.")
     private Boolean vrt;
     
-    @ApiModelProperty(value = "Score is Live event .")
+    //@ApiModelProperty(value = "Score is Live event .")
     private String currentScore;
     
-    @ApiModelProperty(value = "Live current time.")
-    private String liveCurrentTime;  
-    
-    
-    @Override
-    public Optional<Map<String, Object[]>> applyValidations() {     
-        Map<String, Object[]> validations = new HashMap<>();
-        
-        return Optional.of(validations).filter(map -> !map.isEmpty()); 
-    }
-    
-    
+    //@ApiModelProperty(value = "Live current time.")
+    private String liveCurrentTime;
 
-    @Override
-    public BetCoupon toModel() {
-
-        return null;
-    }  
+    //@ApiModelProperty(value = "Qbet number.")
+    private Long alias;
     
 
 

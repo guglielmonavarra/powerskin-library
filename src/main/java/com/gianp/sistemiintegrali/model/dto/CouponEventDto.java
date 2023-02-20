@@ -8,19 +8,10 @@
  * 
  */
 
-package com.mondo.gaming.dto;
+package com.gianp.sistemiintegrali.model.dto;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.mondo.gaming.models.ScheduleType;
-
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -33,49 +24,45 @@ import lombok.Setter;
 @Getter
 @Setter
 @Builder
-@JsonIgnoreProperties(ignoreUnknown = true)
 @AllArgsConstructor
 @NoArgsConstructor
-@JsonInclude(Include.NON_NULL)
-@ApiModel(description = "Coupon event model.")
 public class CouponEventDto {
 
     
-    @ApiModelProperty(value = "Match Id.")
-    private Long id;
+    //@ApiModelProperty(value = "Match Id.")
+    private Long id; // evtId
 
-    @ApiModelProperty(value = "Qbet number.")
-    private Long alias;
+    //@ApiModelProperty(value = "Qbet number.")
+    private Long alias;  // alias
     
-    @ApiModelProperty(value = "Event name.")
-    private String event;    
+    //@ApiModelProperty(value = "Event name.")
+    private String event;    // evtName
 
-    @ApiModelProperty(value = "Type of event.")
-    private ScheduleType type;
+    //@ApiModelProperty(value = "Type of event.")
+    private ScheduleType type; //type
     
-    @ApiModelProperty(value = "Combination number.")
-    private Integer comb;
+    //@ApiModelProperty(value = "Combination number.")
+    private Integer comb; //numero delle selection su singola riga
 
-    @ApiModelProperty(value = "Sport/Category.")
-    private String more;
+    //@ApiModelProperty(value = "Sport/Category.")
+    private String more; //spName / ctName
 
-    @ApiModelProperty(value = "Market Id.")
-    private Long mid;
+    //@ApiModelProperty(value = "Market Id.")
+    private Long mid; //markId
     
-    @ApiModelProperty(value = "Market Name.")
-    private String mn;
+    //@ApiModelProperty(value = "Market Name.")
+    private String mn; //markName
 
-    @ApiModelProperty(value = "Spread.")
-    private String spr;
+    //@ApiModelProperty(value = "Spread.")
+    private String spr; //spread
 
-    @ApiModelProperty(value = "Event date.")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm")
-    private LocalDateTime date;  
+    //@ApiModelProperty(value = "Event date.")
+    private LocalDateTime date; //evnDate
 
-    @ApiModelProperty(value = "Odds value.")
-    private BigDecimal od;
-    
-    
-   
+    //@ApiModelProperty(value = "Odds value.")
+    private BigDecimal od; //oddsValue
+
+    //@ApiModelProperty(value = "If event is fixed.")
+    private Boolean fixed;
     
 }

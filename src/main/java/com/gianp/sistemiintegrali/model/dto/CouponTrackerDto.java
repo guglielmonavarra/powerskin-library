@@ -8,19 +8,12 @@
  * 
  */
 
-package com.mondo.gaming.dto;
+package com.gianp.sistemiintegrali.model.dto;
 
 
 import java.math.BigDecimal;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-
-
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -33,39 +26,40 @@ import lombok.Setter;
 @Getter
 @Setter
 @Builder
-@JsonIgnoreProperties(ignoreUnknown = true)
 @AllArgsConstructor
 @NoArgsConstructor
-@JsonInclude(Include.NON_NULL)
-@ApiModel(description = "Coupon tracker model.")
 public class CouponTrackerDto {
 
-    @ApiModelProperty(value = "Number of events.")
-    private Integer numEvents;
+    //@ApiModelProperty(value = "Number of events.")
+    private Integer numEvents; //events.size()
     
-    @ApiModelProperty(value = "List of events.")
+    //@ApiModelProperty(value = "List of events.")
     private List<CouponEventDto> events;
     
-    @ApiModelProperty(value = "Coupon multiplier.")
-    private Integer multiplier;
+    //@ApiModelProperty(value = "Coupon multiplier.")
+    private Integer multiplier; //
     
-    @ApiModelProperty(value = "Coupon bonus percentage.")
-    private BigDecimal bonusPerc;
+    //@ApiModelProperty(value = "Coupon bonus percentage.")
+    private BigDecimal bonusPerc;// da calcolo
     
-    @ApiModelProperty(value = "Coupon multiple bonus.")
-    private BigDecimal multipleBonus;
+    //@ApiModelProperty(value = "Coupon multiple bonus.")
+    private BigDecimal multipleBonus; //da calcolo
     
-    @ApiModelProperty(value = "Coupon win pot.")
-    private BigDecimal multipleWinPot;
+    //@ApiModelProperty(value = "Coupon win pot.")
+    private BigDecimal multipleWinPot; //da calcolo
     
-    @ApiModelProperty(value = "Coupon total Sign.")
-    private Integer totalSign;    
+    //@ApiModelProperty(value = "Coupon total Sign.")
+    private Integer totalSign;    //numero di eventId (row)
     
-    @ApiModelProperty(value = "Selection numbers.")
-    private Integer ss; 
+    //@ApiModelProperty(value = "Selection numbers.")
+    private Integer ss;  //  come numEvents
     
-    @ApiModelProperty(value = "List of system column.")
+    //@ApiModelProperty(value = "List of system column.")
     private List<CouponSystemDto> system;
-    
+
+
+    /*
+    *
+    * */
     
 }
