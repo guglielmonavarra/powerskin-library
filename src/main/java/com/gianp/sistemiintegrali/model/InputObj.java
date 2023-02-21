@@ -11,7 +11,6 @@ import java.util.List;
 public class InputObj {
 
 	private List<InputRow> oddsRows = Lists.newArrayList();
-	private int defaultStake = 1;
-	private List<Integer> stakes = Lists.newArrayList();
+	private List<Double> stakes = Lists.newArrayList();
 
 }

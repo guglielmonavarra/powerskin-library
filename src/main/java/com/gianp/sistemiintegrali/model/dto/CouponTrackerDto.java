@@ -13,6 +13,7 @@ package com.gianp.sistemiintegrali.model.dto;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -37,7 +38,7 @@ public class CouponTrackerDto {
     private List<CouponEventDto> events;
     
     //@ApiModelProperty(value = "Coupon multiplier.")
-    private Integer multiplier; //
+    private Integer multiplier; // 1 se non integrale. se integrale: valore della prima "n" da lib
     
     //@ApiModelProperty(value = "Coupon bonus percentage.")
     private BigDecimal bonusPerc;// da calcolo
@@ -56,6 +57,8 @@ public class CouponTrackerDto {
     
     //@ApiModelProperty(value = "List of system column.")
     private List<CouponSystemDto> system;
+
+    private Map<Long, Boolean> fixedMapByEvtId;
 
 
     /*

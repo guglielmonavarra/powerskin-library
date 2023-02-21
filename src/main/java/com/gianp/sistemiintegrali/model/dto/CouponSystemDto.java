@@ -26,11 +26,10 @@ import lombok.Setter;
 @NoArgsConstructor
 public class CouponSystemDto {
 
-    //@ApiModelProperty(value = "Kind of column.")
-    private Integer kind;
+    private String type; // campo type da lib
 
     //@ApiModelProperty(value = "Column index.")
-    private Integer col;
+    private Integer col; // campo n da lib
 
     //@ApiModelProperty(value = "Odds min value.")
     private BigDecimal oddMin;

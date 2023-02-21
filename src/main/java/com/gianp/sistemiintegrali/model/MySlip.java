@@ -17,9 +17,13 @@ public class MySlip {
 	private MyTree completeDag = new MyTree();
 	private List<List<MyNode>> slipRows = Lists.newArrayList(); //0-index
 	private Set<Integer> fixedRows = Sets.newHashSet(); //1-index
-	private List<Integer> stakes = Lists.newArrayList(); //0-indexed
+	private List<Double> stakes = Lists.newArrayList(); //0-indexed
 	private Double possibleWinC = 0.0;
 	private Double bonusAddedC = 0.0;
+
+	public int getNevent(){
+		return slipRows.size();
+	}
 
 
 	public static MySlip buildFromRange(List<InputRow> range){
@@ -55,7 +59,7 @@ public class MySlip {
 
 		}
 
-		//result.nEvents = result.slipRows.size();
+
 		return result;
 	}
 
@@ -186,7 +190,7 @@ public class MySlip {
 //				int index = slipRows.size() - i;
 		for (int i = slipRows.size(); i > 0; i--){
 			int kpla = getKpla(i, oddsRows);
-			Integer currentStake = stakes.get(i - 1);
+			Double currentStake = stakes.get(i - 1);
 			result.getOutputRowList().add(new OutputRow(
 					Utils.getNameFromNumber(i),
 					kpla,

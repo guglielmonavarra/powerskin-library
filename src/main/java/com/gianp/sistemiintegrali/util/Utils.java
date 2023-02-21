@@ -52,12 +52,12 @@ public class Utils {
 		return result;
 	}
 
-	public static List<Integer> fillStakes(List<Integer> stakes, int defaultStake) {
-		return stakes.stream()
-				.map(st -> st == null ? defaultStake : st)
-				.collect(Collectors.toList())
-				;
-	}
+//	public static List<Double> fillStakes(List<Double> stakes, double defaultStake) {
+//		return stakes.stream()
+//				.map(st -> st == null ? defaultStake : st)
+//				.collect(Collectors.toList())
+//				;
+//	}
 
 	public static String getNameFromNumber(int index) {
 		switch (index) {

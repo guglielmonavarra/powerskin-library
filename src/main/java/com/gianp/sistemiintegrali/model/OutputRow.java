@@ -13,9 +13,9 @@ import java.util.List;
 public class OutputRow {
 
 	private String type;
-	private int n;
+	private Integer n;
 	private Double maxWin;
 	private Double minWin;
-	private int toPay;
+	private Double toPay;
 
 }

@@ -12,6 +12,8 @@ package com.gianp.sistemiintegrali.model.dto;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Objects;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -62,7 +64,36 @@ public class CouponEventDto {
     //@ApiModelProperty(value = "Odds value.")
     private BigDecimal od; //oddsValue
 
-    //@ApiModelProperty(value = "If event is fixed.")
-    private Boolean fixed;
-    
+    //@ApiModelProperty(value = "Odds Id.")
+    private Long oddsId;
+
+    public static CouponEventDto from(BetCouponDto bc){
+        return new CouponEventDto(
+               bc.getEvtId(),
+               bc.getAlias(),
+               bc.getEvtName(),
+               bc.getType(),
+               null,
+               bc.getSpName() + " / " + bc.getCtName(),
+               bc.getMarkId(),
+               bc.getMarkName(),
+               bc.getSpread(),
+               bc.getEvnDate(),
+                bc.getOddsValue(),
+                bc.getOddsId()
+        );
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        CouponEventDto that = (CouponEventDto) o;
+        return id.equals(that.id) && oddsId.equals(that.oddsId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, oddsId);
+    }
 }
