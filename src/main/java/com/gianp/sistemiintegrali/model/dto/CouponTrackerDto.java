@@ -15,27 +15,22 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
-
+import com.google.common.collect.Lists;
+import lombok.*;
 
 
 @Getter
 @Setter
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@ToString
 public class CouponTrackerDto {
 
     //@ApiModelProperty(value = "Number of events.")
     private Integer numEvents; //events.size()
-    
+
     //@ApiModelProperty(value = "List of events.")
-    private List<CouponEventDto> events;
+    private List<CouponEventDto> events = Lists.newArrayList();
     
     //@ApiModelProperty(value = "Coupon multiplier.")
     private Integer multiplier; // 1 se non integrale. se integrale: valore della prima "n" da lib

@@ -109,8 +109,8 @@ public class MySlip {
 					result += completeDag.countPaths(key, key1);
 				}
 			}
-			possibleWinC += (completeDag.getPossibleWin() * getStakes().get(k-1));
-			bonusAddedC += (completeDag.getBonusAdded() * getStakes().get(k-1)); //slipRows.size()-1
+			possibleWinC += (completeDag.getPossibleWin() * getStake(k-1));
+			bonusAddedC += (completeDag.getBonusAdded() * getStake(k-1)); //slipRows.size()-1
 			return result;
 		}
 
@@ -130,8 +130,8 @@ public class MySlip {
 						tempWin += (myNode.getMyValue() * multiplier);
 						tempBonus += (myNode.getMyValue() * (multiplier-1) );
 					}
-					possibleWinC += (tempWin * getStakes().get(0) );
-					bonusAddedC += (tempBonus * getStakes().get(0) );
+					possibleWinC += (tempWin * getStake(0) );
+					bonusAddedC += (tempBonus * getStake(0) );
 				}
 			} else {
 				for (Integer i : fixedRows) {
@@ -147,8 +147,8 @@ public class MySlip {
 						tempWin += (myNode.getMyValue() * multiplier);
 						tempBonus += (myNode.getMyValue() * (multiplier-1) );
 					}
-					possibleWinC += (tempWin * getStakes().get(0) );
-					bonusAddedC += (tempBonus * getStakes().get(0) );
+					possibleWinC += (tempWin * getStake(0) );
+					bonusAddedC += (tempBonus * getStake(0) );
 				}
 			}
 			return result;
@@ -177,8 +177,8 @@ public class MySlip {
 				}
 			}
 			completeDag.setRowWins(Utils.mergeCollectionMaps(completeDag.getRowWins(), tempDag.getRowWins()));
-			possibleWinC += (tempDag.getPossibleWin() * getStakes().get(k-1));
-			bonusAddedC += (tempDag.getBonusAdded() * getStakes().get(k-1));
+			possibleWinC += (tempDag.getPossibleWin() * getStake(k-1));
+			bonusAddedC += (tempDag.getBonusAdded() * getStake(k-1));
 		}
 
 		return result;
@@ -190,7 +190,7 @@ public class MySlip {
 //				int index = slipRows.size() - i;
 		for (int i = slipRows.size(); i > 0; i--){
 			int kpla = getKpla(i, oddsRows);
-			Double currentStake = stakes.get(i - 1);
+			Double currentStake = getStake(i - 1);
 			result.getOutputRowList().add(new OutputRow(
 					Utils.getNameFromNumber(i),
 					kpla,
@@ -203,6 +203,14 @@ public class MySlip {
 		result.setPossibleWin(possibleWinC);
 		result.setBonusAdded(bonusAddedC);
 		return result;
+	}
+
+	private Double getStake(int index){
+		try {
+			return stakes.get(index);
+		} catch (IndexOutOfBoundsException e){
+			return 0.0;
+		}
 	}
 
 

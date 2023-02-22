@@ -13,17 +13,14 @@ package com.gianp.sistemiintegrali.model.dto;
 import java.math.BigDecimal;
 
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
 @Setter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@ToString
 public class CouponSystemDto {
 
     private String type; // campo type da lib
@@ -31,19 +28,16 @@ public class CouponSystemDto {
     //@ApiModelProperty(value = "Column index.")
     private Integer col; // campo n da lib
 
-    //@ApiModelProperty(value = "Odds min value.")
-    private BigDecimal oddMin;
+    //@ApiModelProperty(value = "Max Win.")
+    private BigDecimal maxWin;
 
-    //@ApiModelProperty(value = "Odds max value.")
-    private BigDecimal oddMax;
+    //@ApiModelProperty(value = "Min Win.")
+    private BigDecimal minWin;
 
-    //@ApiModelProperty(value = "Bonus min.")
-    private BigDecimal bonusMin;
 
-    //@ApiModelProperty(value = "Bonus Max.")
-    private BigDecimal bonusMax;
+    //@ApiModelProperty(value = "To Pay.")
+    private BigDecimal toPay;
 
-    //@ApiModelProperty(value = "Odds Max column.")
-    private BigDecimal oddMaxCol;
+
     
 }
