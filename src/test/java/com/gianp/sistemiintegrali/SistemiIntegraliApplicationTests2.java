@@ -107,9 +107,10 @@ class SistemiIntegraliApplicationTests2 {
 
 		tracker = engine.eval(tracker, bet2, SetUnset.SET);
 
-		System.out.println(tracker);
+//		System.out.println(tracker);
 		assertEquals(2, tracker.getNumEvents());
 		assertEquals(2, tracker.getSystem().size());
+		assertEquals(1, tracker.getMultiplier());
 		
 		assertEquals("Double", tracker.getSystem().get(0).getType());
 		assertEquals(1, tracker.getSystem().get(0).getCol());
@@ -119,8 +120,8 @@ class SistemiIntegraliApplicationTests2 {
 
 		assertEquals("Single", tracker.getSystem().get(1).getType());
 		assertEquals(2, tracker.getSystem().get(1).getCol());
-		assertEquals(new BigDecimal(5.70), tracker.getSystem().get(1).getMaxWin());
-		assertEquals(new BigDecimal(1.40), tracker.getSystem().get(1).getMinWin());
+		assertEquals(5.70, tracker.getSystem().get(1).getMaxWin().doubleValue(), 0.01);
+		assertEquals(1.40, tracker.getSystem().get(1).getMinWin().doubleValue(), 0.01);
 		assertEquals(2, tracker.getSystem().get(1).getToPay().doubleValue(), 0.01);
 
 		BetCouponDto bet3 = new BetCouponDto(
@@ -157,6 +158,7 @@ class SistemiIntegraliApplicationTests2 {
 
 		assertEquals(2, tracker.getNumEvents());
 		assertEquals(2, tracker.getSystem().size());
+		assertEquals(1, tracker.getMultiplier());
 
 		assertEquals("Double", tracker.getSystem().get(0).getType());
 		assertEquals(1, tracker.getSystem().get(0).getCol());
@@ -166,8 +168,8 @@ class SistemiIntegraliApplicationTests2 {
 
 		assertEquals("Single", tracker.getSystem().get(1).getType());
 		assertEquals(2, tracker.getSystem().get(1).getCol());
-		assertEquals(new BigDecimal(5.70), tracker.getSystem().get(1).getMaxWin());
-		assertEquals(new BigDecimal(1.40), tracker.getSystem().get(1).getMinWin());
+		assertEquals(5.70, tracker.getSystem().get(1).getMaxWin().doubleValue(), 0.01);
+		assertEquals(1.40, tracker.getSystem().get(1).getMinWin().doubleValue(), 0.01);
 		assertEquals(2, tracker.getSystem().get(1).getToPay().doubleValue(), 0.01);
 
 
@@ -236,6 +238,30 @@ class SistemiIntegraliApplicationTests2 {
 
 		tracker = engine.eval(tracker, bet21, SetUnset.SET);
 		System.out.println(tracker);
+
+		assertEquals(3, tracker.getNumEvents());
+		assertEquals(2, tracker.getMultiplier());
+
+		assertEquals(evtId1, tracker.getEvents().get(0).getId());
+		assertEquals(2, tracker.getEvents().get(0).getComb());
+		assertEquals(evtId1, tracker.getEvents().get(1).getId());
+		assertEquals(2, tracker.getEvents().get(1).getComb());
+		assertEquals(evtId2, tracker.getEvents().get(2).getId());
+		assertEquals(1, tracker.getEvents().get(2).getComb());
+
+		assertEquals(2, tracker.getSystem().size());
+
+		assertEquals("Double", tracker.getSystem().get(0).getType());
+		assertEquals(2, tracker.getSystem().get(0).getCol());
+		assertEquals(21.375, tracker.getSystem().get(0).getMaxWin().doubleValue(), 0.001);
+		assertEquals(6.2625, tracker.getSystem().get(0).getMinWin().doubleValue(), 0.001);
+		assertEquals(1.5, tracker.getSystem().get(0).getToPay().doubleValue(), 0.01);
+
+		assertEquals("Single", tracker.getSystem().get(1).getType());
+		assertEquals(2, tracker.getSystem().get(1).getCol());
+		assertEquals(4.275, tracker.getSystem().get(1).getMaxWin().doubleValue(), 0.001);
+		assertEquals(1.2525, tracker.getSystem().get(1).getMinWin().doubleValue(), 0.001);
+		assertEquals(1.5, tracker.getSystem().get(1).getToPay().doubleValue(), 0.01);
 
 	}
 }
