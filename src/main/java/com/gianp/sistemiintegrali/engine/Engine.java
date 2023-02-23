@@ -27,24 +27,21 @@ public class Engine {
 
     public CouponTrackerDto eval(CouponTrackerDto tracker, BetCouponDto betCoupon, SetUnset method){
         switch (method) {
-            case SET:   return evalSet(tracker, betCoupon);
-            case UNSET: return evalUnset(tracker, betCoupon);
+            case SET: {
+                CouponEventDto ev = CouponEventDto.from(betCoupon);
+                if (!tracker.getEvents().contains(ev)) tracker.getEvents().add(ev);
+                break;
+            }
+            case UNSET: {
+                CouponEventDto ev = CouponEventDto.from(betCoupon);
+                if (tracker.getEvents().contains(ev)) tracker.getEvents().remove(ev);
+                break;
+            }
             default:
                 throw new IllegalStateException("Unexpected value: " + method);
         }
-    }
 
-    private CouponTrackerDto evalUnset(CouponTrackerDto tracker, BetCouponDto betCoupon) {
-        CouponEventDto ev = CouponEventDto.from(betCoupon);
-        if (tracker.getEvents().contains(ev)) tracker.getEvents().remove(ev);
-        return tracker;
-    }
-
-    private CouponTrackerDto evalSet(CouponTrackerDto tracker, BetCouponDto betCoupon) {
-        CouponEventDto ev = CouponEventDto.from(betCoupon);
-        if (!tracker.getEvents().contains(ev)) tracker.getEvents().add(ev);
         List<InputRow> inputRowListLib = createOddsRowsFromTracker(tracker.getEvents());
-
 
         MySlip mySlip = MySlip.buildFromRange(inputRowListLib);
         mySlip.getCompleteDag().setBonusTable(BonusTable.getTestInstance());
@@ -57,6 +54,30 @@ public class Engine {
 
         return tracker;
     }
+
+//    private CouponTrackerDto evalUnset(CouponTrackerDto tracker, BetCouponDto betCoupon) {
+//        CouponEventDto ev = CouponEventDto.from(betCoupon);
+//        if (tracker.getEvents().contains(ev)) tracker.getEvents().remove(ev);
+//        return tracker;
+//    }
+//
+//    private CouponTrackerDto evalSet(CouponTrackerDto tracker, BetCouponDto betCoupon) {
+//        CouponEventDto ev = CouponEventDto.from(betCoupon);
+//        if (!tracker.getEvents().contains(ev)) tracker.getEvents().add(ev);
+//
+//        List<InputRow> inputRowListLib = createOddsRowsFromTracker(tracker.getEvents());
+//
+//        MySlip mySlip = MySlip.buildFromRange(inputRowListLib);
+//        mySlip.getCompleteDag().setBonusTable(BonusTable.getTestInstance());
+//
+//        List<Double> stakes = spreadStakes(inputRowListLib, mySlip, defaultStake);
+//        mySlip.setStakes(stakes);
+//
+//        OutputObj outputObj = mySlip.writeNple(inputRowListLib);
+//        fillTrackerFields(tracker, inputRowListLib, outputObj);
+//
+//        return tracker;
+//    }
 
     private void fillTrackerFields(CouponTrackerDto tracker, List<InputRow> inputRowListLib, OutputObj outputObj) {
         tracker.setNumEvents(tracker.getEvents().size());
