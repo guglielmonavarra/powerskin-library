@@ -4,7 +4,6 @@ package com.gianp.sistemiintegrali.engine;
 import com.gianp.sistemiintegrali.model.*;
 import com.gianp.sistemiintegrali.model.dto.*;
 import com.google.common.collect.Lists;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -14,18 +13,8 @@ import java.util.stream.Collectors;
 
 public class Engine {
 
-
-    public static List<Boolean> active = Lists.newArrayList(true, true, false); //todo: prendere gli active
-    private double defaultStake = 3.0;
-
-//    public OutputObj run(InputObj in) {
-//        MySlip mySlip = MySlip.buildFromRange(in.getOddsRows());
-//        mySlip.getCompleteDag().setBonusTable(BonusTable.getTestInstance());
-//
-//        return mySlip.writeNple(in.getOddsRows());
-//    }
-
-    public CouponTrackerDto eval(CouponTrackerDto tracker, BetCouponDto betCoupon, SetUnset method){
+    //raccoglie solo informazioni, non fa ne eval, ne spread stake
+    public CouponTrackerDto betCouponInteraction(CouponTrackerDto tracker, BetCouponDto betCoupon, SetUnset method){
         switch (method) {
             case SET: {
                 CouponEventDto ev = CouponEventDto.from(betCoupon);
@@ -41,22 +30,55 @@ public class Engine {
                 throw new IllegalStateException("Unexpected value: " + method);
         }
 
-        return run(tracker);
+        return tracker;
     }
 
-    public CouponTrackerDto eval(CouponTrackerDto tracker, Long eventIdFixed, SetUnset method){
+    //raccoglie solo informazioni, non fa ne eval, ne spread stake
+    public CouponTrackerDto fixedInteraction(CouponTrackerDto tracker, Long eventIdFixed, SetUnset method){
         tracker.getFixedMapByEvtId().put(eventIdFixed, SetUnset.SET.equals(method));
-        return run(tracker);
+        return tracker;
     }
 
-    private CouponTrackerDto run(CouponTrackerDto tracker) {
+    //automaticamente fa lo spread stake
+    public CouponTrackerDto setDefaultStake(CouponTrackerDto tracker, BigDecimal defaultStake){
+        tracker.setDefaultStake(defaultStake);
+        return spreadStake(tracker);
+    }
+
+    //automaticamente fa lo spread stake
+    public CouponTrackerDto setActiveList(CouponTrackerDto tracker, List<Boolean> activeList){
+        tracker.setActive(activeList);
+        return spreadStake(tracker);
+    }
+
+    //solo spread stake
+    public CouponTrackerDto spreadStake(CouponTrackerDto tracker){
         List<InputRow> inputRowListLib = createOddsRowsFromTracker(tracker);
 
         MySlip mySlip = MySlip.buildFromRange(inputRowListLib);
         mySlip.getCompleteDag().setBonusTable(BonusTable.getTestInstance());
 
-        List<Double> stakes = spreadStakes(inputRowListLib, mySlip, defaultStake);
-        mySlip.setStakes(stakes);
+        List<Double> stakes = spreadStakesPrivate(inputRowListLib, mySlip, tracker.getDefaultStake(), tracker.getActive());
+        //mySlip.setStakes(stakes);
+
+        tracker.setStakes(stakes.stream().map(BigDecimal::valueOf).collect(Collectors.toList()));
+        return tracker;
+    }
+
+    //per cambio stake manuale da parte dell'utente
+    public CouponTrackerDto setStakeFromUser(CouponTrackerDto tracker, List<BigDecimal> stakes){
+        tracker.setStakes(stakes);
+        return tracker;
+    }
+
+    //non fa spread stake, solo eval
+    public CouponTrackerDto eval(CouponTrackerDto tracker) {
+        List<InputRow> inputRowListLib = createOddsRowsFromTracker(tracker);
+
+        MySlip mySlip = MySlip.buildFromRange(inputRowListLib);
+        mySlip.getCompleteDag().setBonusTable(BonusTable.getTestInstance());
+
+        mySlip.setStakes(tracker.getStakes().stream().map(BigDecimal::doubleValue).collect(Collectors.toList()));
 
         OutputObj outputObj = mySlip.writeNple(inputRowListLib);
         fillTrackerFields(tracker, inputRowListLib, outputObj);
@@ -73,19 +95,27 @@ public class Engine {
         tracker.setSystem(outputObj.getOutputRowList().stream().map(this::couponSystemDtoFromOutputRow).collect(Collectors.toList()));
     }
 
-    private List<Double> spreadStakes(List<InputRow> inputRowListLib, MySlip mySlip, double defaultStake) {
+    private List<Double> spreadStakesPrivate(List<InputRow> inputRowListLib, MySlip mySlip, BigDecimal defaultStake, List<Boolean> active) {
         //spread the stake
         List<Double> stakes = Lists.newArrayList();
         List<Integer> combPerRow = Lists.newArrayList();
         int nCombz = 0;
         for (int i = 0; i < mySlip.getNevent(); i++){
             combPerRow.add(mySlip.getKpla(mySlip.getNevent()-i, inputRowListLib) );
-            if (active.get(i)) nCombz += combPerRow.get(i);
+            if (getActive(active, i)) nCombz += combPerRow.get(i);
         }
         for (int i = 0; i < mySlip.getNevent(); i++){
-            stakes.add(active.get(i) ? defaultStake / nCombz : 0);
+            stakes.add(getActive(active, i) ? defaultStake.doubleValue() / nCombz : 0);
         }
         return stakes;
+    }
+    
+    private boolean getActive(List<Boolean> activeList, int index){
+        try {
+            return activeList.get(index);
+        } catch (IndexOutOfBoundsException e){
+            return false;
+        }
     }
 
     private List<InputRow> createOddsRowsFromTracker(CouponTrackerDto tracker){

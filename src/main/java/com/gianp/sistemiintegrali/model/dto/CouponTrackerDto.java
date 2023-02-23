@@ -56,6 +56,11 @@ public class CouponTrackerDto {
 
     private Map<Long, Boolean> fixedMapByEvtId = Maps.newHashMap();
 
+    public  List<Boolean> active = Lists.newArrayList(true);
+    private BigDecimal defaultStake = BigDecimal.valueOf(3.0);
+
+    private List<BigDecimal> stakes = Lists.newArrayList();
+
 
     
 }
