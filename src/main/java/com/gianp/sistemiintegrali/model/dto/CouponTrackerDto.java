@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import lombok.*;
 
 
@@ -53,11 +54,8 @@ public class CouponTrackerDto {
     //@ApiModelProperty(value = "List of system column.")
     private List<CouponSystemDto> system;
 
-    private Map<Long, Boolean> fixedMapByEvtId;
+    private Map<Long, Boolean> fixedMapByEvtId = Maps.newHashMap();
 
 
-    /*
-    *
-    * */
     
 }

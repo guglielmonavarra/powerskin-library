@@ -18,12 +18,12 @@ public class Engine {
     public static List<Boolean> active = Lists.newArrayList(true, true, false); //todo: prendere gli active
     private double defaultStake = 3.0;
 
-    public OutputObj run(InputObj in) {
-        MySlip mySlip = MySlip.buildFromRange(in.getOddsRows());
-        mySlip.getCompleteDag().setBonusTable(BonusTable.getTestInstance());
-
-        return mySlip.writeNple(in.getOddsRows());
-    }
+//    public OutputObj run(InputObj in) {
+//        MySlip mySlip = MySlip.buildFromRange(in.getOddsRows());
+//        mySlip.getCompleteDag().setBonusTable(BonusTable.getTestInstance());
+//
+//        return mySlip.writeNple(in.getOddsRows());
+//    }
 
     public CouponTrackerDto eval(CouponTrackerDto tracker, BetCouponDto betCoupon, SetUnset method){
         switch (method) {
@@ -41,7 +41,16 @@ public class Engine {
                 throw new IllegalStateException("Unexpected value: " + method);
         }
 
-        List<InputRow> inputRowListLib = createOddsRowsFromTracker(tracker.getEvents());
+        return run(tracker);
+    }
+
+    public CouponTrackerDto eval(CouponTrackerDto tracker, Long eventIdFixed, SetUnset method){
+        tracker.getFixedMapByEvtId().put(eventIdFixed, SetUnset.SET.equals(method));
+        return run(tracker);
+    }
+
+    private CouponTrackerDto run(CouponTrackerDto tracker) {
+        List<InputRow> inputRowListLib = createOddsRowsFromTracker(tracker);
 
         MySlip mySlip = MySlip.buildFromRange(inputRowListLib);
         mySlip.getCompleteDag().setBonusTable(BonusTable.getTestInstance());
@@ -54,6 +63,7 @@ public class Engine {
 
         return tracker;
     }
+
 
 //    private CouponTrackerDto evalUnset(CouponTrackerDto tracker, BetCouponDto betCoupon) {
 //        CouponEventDto ev = CouponEventDto.from(betCoupon);
@@ -103,19 +113,16 @@ public class Engine {
         return stakes;
     }
 
-    public CouponTrackerDto eval(CouponTrackerDto tracker, Long eventIdFixed, SetUnset method){
-        throw new NotImplementedException();
-    }
-
-    private List<InputRow> createOddsRowsFromTracker(List<CouponEventDto> events){
+    private List<InputRow> createOddsRowsFromTracker(CouponTrackerDto tracker){
         List<InputRow> result = Lists.newArrayList();
+        List<CouponEventDto> events = tracker.getEvents();
 
         Map<Long, List<CouponEventDto>> eventGroupedByEventID = events
                 .stream()
                 .collect(Collectors.groupingBy(CouponEventDto::getId))
                 ;
         eventGroupedByEventID.forEach((id, couponEventDtos) -> result.add(
-                new InputRow(false,
+                new InputRow(id, tracker.getFixedMapByEvtId().getOrDefault(id, false),
                         couponEventDtos.stream().map(CouponEventDto::getOd).map(BigDecimal::doubleValue).collect(Collectors.toList()))
         ));
 

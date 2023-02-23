@@ -14,6 +14,8 @@ import java.util.List;
 @ToString
 public class InputRow {
 
+	private Long evtId;
+
 	private boolean fixed;
 	private List<Double> list = Lists.newArrayList();
 

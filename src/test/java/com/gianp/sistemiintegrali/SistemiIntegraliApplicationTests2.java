@@ -40,6 +40,9 @@ class SistemiIntegraliApplicationTests2 {
 	void test1(){
 		CouponTrackerDto tracker = new CouponTrackerDto();
 
+		long evtId1 = 11L;
+		long evtId2 = 112L;
+
 		BetCouponDto bet1 = new BetCouponDto(
 				1,
 				"sdf",
@@ -52,7 +55,7 @@ class SistemiIntegraliApplicationTests2 {
 				77L,
 				"mark id type",
 				"mark name",
-				11L,
+				evtId1,
 				"amdi",
 				"evtname",
 				LocalDateTime.now(),
@@ -166,5 +169,73 @@ class SistemiIntegraliApplicationTests2 {
 		assertEquals(new BigDecimal(5.70), tracker.getSystem().get(1).getMaxWin());
 		assertEquals(new BigDecimal(1.40), tracker.getSystem().get(1).getMinWin());
 		assertEquals(2, tracker.getSystem().get(1).getToPay().doubleValue(), 0.01);
+
+
+
+		tracker = engine.eval(tracker, bet2, SetUnset.UNSET);
+		BetCouponDto bet12 = new BetCouponDto(
+				1,
+				"sdf",
+				ScheduleType.PREMATCH,
+				"sel name",
+				55L,
+				661L,
+				new BigDecimal(1.67),
+				"spread",
+				77L,
+				"mark id type",
+				"mark name",
+				evtId1,
+				"amdi",
+				"evtname",
+				LocalDateTime.now(),
+				5436563L,
+				32L,
+				"sport name",
+				99L,
+				"ctname",
+				99L,
+				"trname",
+				false,
+				"fds",
+				"livecurrenttime",
+				10L
+		);
+
+		tracker = engine.eval(tracker, bet12, SetUnset.SET);
+		tracker = engine.eval(tracker, evtId1, SetUnset.SET);
+
+		BetCouponDto bet21 = new BetCouponDto(
+				1,
+				"sdf",
+				ScheduleType.PREMATCH,
+				"sel name",
+				55L,
+				671L,
+				new BigDecimal(5),
+				"spread",
+				77L,
+				"mark id type",
+				"mark name",
+				evtId2,
+				"amdi",
+				"evtname",
+				LocalDateTime.now(),
+				5436563L,
+				32L,
+				"sport name",
+				99L,
+				"ctname",
+				99L,
+				"trname",
+				false,
+				"fds",
+				"livecurrenttime",
+				10L
+		);
+
+		tracker = engine.eval(tracker, bet21, SetUnset.SET);
+		System.out.println(tracker);
+
 	}
 }
