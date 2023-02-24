@@ -1,0 +1,188 @@
+Rem Attribute VBA_ModuleType=VBAClassModule
+Option VBASupport 1
+Option ClassModule
+Option Explicit
+
+Public Adj As Object    'Adjacency matrix
+Public Visited As Object      'Set of visited vertices
+Public Vertices As Object   'Set of vertices objects
+Public possibleWin As Double
+Public bTable As Object
+Public rowWins As Object
+Public bonusAdded As Double
+Public combOut As Object
+Public bonuses As Collection
+Public maxOdds As Object
+Public dictCombz As Object
+
+Private Sub Class_Initialize()
+    Set Adj = CreateObject("Scripting.Dictionary")
+    Set Visited = CreateObject("Scripting.Dictionary")
+    Set Vertices = CreateObject("Scripting.Dictionary")
+    Set rowWins = CreateObject("Scripting.Dictionary")
+    Set combOut = CreateObject("Scripting.Dictionary")
+    possibleWin = 0
+    bonusAdded = 0
+    Set bonuses = New Collection
+    Set maxOdds = CreateObject("Scripting.Dictionary")
+    Set dictCombz = CreateObject("Scripting.Dictionary")
+End Sub
+
+Public Sub resetVisited()
+    Dim key As Variant
+    
+    For Each key In Visited.keys
+        Visited(key) = False
+    Next key
+End Sub
+
+Public Sub addEdge(u As Variant, v As Variant)
+    Dim tempDict As Object
+    Dim tempNode As MyNode
+
+    If Not Vertices.exists(u.ID) Then
+        Set tempNode = New MyNode
+        tempNode.ID = u.ID
+        tempNode.My_Event = u.My_Event
+        tempNode.My_Value = u.My_Value
+        Set Vertices(u.ID) = tempNode
+    End If
+    
+    If Not Vertices.exists(v.ID) Then
+        Set tempNode = New MyNode
+        tempNode.ID = v.ID
+        tempNode.My_Event = v.My_Event
+        tempNode.My_Value = v.My_Value
+        Set Vertices(v.ID) = tempNode
+    End If
+
+    If Not Visited.exists(u.ID) Then
+        Visited(u.ID) = False
+    End If
+    
+    If Not Visited.exists(v.ID) Then
+        Visited(v.ID) = False
+    End If
+    
+    If Not Adj.exists(u.ID) Then
+        Set Adj(u.ID) = CreateObject("Scripting.Dictionary")
+    End If
+    Set tempDict = Adj(u.ID)
+    tempDict(v.ID) = u.ID
+    
+    If Not Adj.exists(v.ID) Then
+        Set Adj(v.ID) = CreateObject("Scripting.Dictionary")
+    End If
+    
+End Sub
+
+Public Sub printAdjMatrix(startRng As Variant)
+    Dim i, j As Integer
+    Dim key, key1 As Variant
+    Dim tempDict As Object
+    
+    startRng.Value = "adj"
+
+    'Print first Row
+    i = 0
+    For Each key In Vertices.keys
+        startRng.Offset(columnoffset:=i + 1).Value = key
+        i = i + 1
+    Next key
+    
+    'Print first Column
+    i = 0
+    For Each key In Vertices.keys
+        startRng.Offset(rowoffset:=i + 1).Value = key
+        i = i + 1
+    Next key
+    
+    'Print Adjacence Matrix
+    i = 1
+    j = 1
+    For Each key In Vertices.keys
+        Set tempDict = Adj(key)
+        For Each key1 In Vertices.keys
+            If tempDict.exists(key1) Then
+                startRng.Offset(rowoffset:=i, columnoffset:=j).Value = 1
+            Else
+                startRng.Offset(rowoffset:=i, columnoffset:=j).Value = 0
+            End If
+            j = j + 1
+        Next key1
+        j = 1
+        i = i + 1
+    Next key
+End Sub
+
+Public Function countPaths(id1 As Variant, id2 As Variant) As Variant
+'Count the paths from vertex with id id1 to vertex with id id2. Assumes an acyclyc directed graph, specifically a tree
+    Dim pathCount As Integer
+    Dim cuNode As MyNode
+    Dim nodeChain As Collection
+    
+    Set nodeChain = New Collection
+    nodeChain.Add Vertices(id1)
+        
+    pathCount = 0
+    Set cuNode = New MyNode
+    cuNode.My_Value = Vertices(id1).My_Value
+    Call resetVisited
+    countPathsUtil id1, id2, pathCount, cuNode, nodeChain
+    countPaths = pathCount
+End Function
+
+Public Sub countPathsUtil(id1 As Variant, id2 As Variant, pathCountIn As Variant, cumOdds As Variant, nodeChain As Variant)
+    Dim key As Variant
+    Dim tempDict, tempDict1 As Object
+    Dim cuNode As MyNode
+    Dim multiplier As Double: multiplier = 1
+    Dim nodeChain1 As Collection
+    Dim tempStr As String
+    
+    If id1 = id2 Then
+        pathCountIn = pathCountIn + 1
+        'Add bonus
+        If bTable.multipliers.exists(NElementsOverThr(nodeChain, bTable.oddsThr)) Then
+          multiplier = bTable.multipliers(NElementsOverThr(nodeChain, bTable.oddsThr))
+        End If
+        possibleWin = possibleWin + cumOdds.My_Value * multiplier
+        bonusAdded = bonusAdded + cumOdds.My_Value * (multiplier - 1)
+        bonuses.Add cumOdds.My_Value * (multiplier - 1)
+        If Not rowWins.exists(nodeChain.Count) Then
+          Set rowWins(nodeChain.Count) = CreateObject("Scripting.Dictionary")
+        End If
+        Set tempDict1 = rowWins(nodeChain.Count)
+        tempDict1(nodeChainToStr(nodeChain)) = cumOdds.My_Value * multiplier
+        Set rowWins(nodeChain.Count) = tempDict1
+        
+        If maxOdds.exists(nodeChain.Count) Then
+          maxOdds(nodeChain.Count) = WorksheetFunction.Max(maxOdds(nodeChain.Count), nodeChainMax(nodeChain))
+        Else
+          maxOdds(nodeChain.Count) = nodeChainMax(nodeChain)
+        End If
+        
+        If dictCombz.exists(nodeChain.Count) Then
+          Set dictCombz(nodeChain.Count) = mergeDictsOfCollections(dictCombz(nodeChain.Count), nodeChainToDict(nodeChain))
+        Else
+          Set dictCombz(nodeChain.Count) = nodeChainToDict(nodeChain)
+        End If
+        
+        If isSaveCombz() Then
+          tempStr = ""
+          For Each key In nodeChain
+               tempStr = tempStr & key.ID & "/"
+          Next key
+          combOut(tempStr) = cumOdds.My_Value * multiplier
+        End If
+    Else
+        Set tempDict = Adj(id1)
+        For Each key In tempDict.keys
+            Set cuNode = New MyNode
+            Set nodeChain1 = CopyCollection(nodeChain)
+            nodeChain1.Add Vertices(key)
+            cuNode.My_Value = cumOdds.My_Value * Vertices(key).My_Value
+            countPathsUtil key, id2, pathCountIn, cuNode, nodeChain1
+        Next key
+    End If
+End Sub
