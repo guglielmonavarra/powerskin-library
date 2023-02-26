@@ -2,14 +2,13 @@ package com.gianp.sistemiintegrali.model;
 
 import com.gianp.sistemiintegrali.util.Utils;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 @Data
 public class MySlip {
@@ -20,6 +19,8 @@ public class MySlip {
 	private List<Double> stakes = Lists.newArrayList(); //0-indexed
 	private Double possibleWinC = 0.0;
 	private Double bonusAddedC = 0.0;
+
+	private List<Double> bonuses = Lists.newArrayList();
 
 	public int getNevent(){
 		return slipRows.size();
@@ -111,12 +112,13 @@ public class MySlip {
 			}
 			possibleWinC += (completeDag.getPossibleWin() * getStake(0)); // getStake(k-1));
 			bonusAddedC += (completeDag.getBonusAdded() * getStake(0)); // getStake(k-1));
+			bonuses.addAll(completeDag.getBonuses());
 			return result;
 		}
 
 		//Special case, single
 		if (k == 1){
-			completeDag.getRowWins().put(1, Lists.newArrayList());
+			completeDag.getRowWins().put(1, Maps.newHashMap());
 			if (fixedRows.isEmpty()){
 				result = completeDag.vertexSet().size();
 				for (List<MyNode> slipRow : slipRows) {
@@ -124,11 +126,19 @@ public class MySlip {
 					double tempBonus = 0.0;
 					for (MyNode myNode : slipRow) {
 						double multiplier = completeDag.getMultiplierFromBonusTable(Utils.nElementsOverThr(Lists.newArrayList(myNode), completeDag.getBonusTable().getOddsThr()));
-						completeDag.getRowWins().get(1).add(myNode.getMyValue() * multiplier);
+						completeDag.getRowWins().get(1).put(myNode.getID(), myNode.getMyValue() * multiplier);
+
+						Double maxOddOrDefault = completeDag.getMaxOdds().getOrDefault(1, 0.0);
+						completeDag.getMaxOdds().put(1, Double.max(maxOddOrDefault,  myNode.getMyValue() * multiplier));
+
+						Map<String, List<MyNode>> combAtRow = completeDag.getCombz().getOrDefault(1, Maps.newHashMap());
+						combAtRow.put(myNode.getID(), Lists.newArrayList(myNode));
+						completeDag.getCombz().put(1, combAtRow);
 						//log combz
 						//log.debug( (myNode.getID()+ "/" + (myNode.getMyValue() * multiplier)).replace(".",",") );
 						tempWin += (myNode.getMyValue() * multiplier);
 						tempBonus += (myNode.getMyValue() * (multiplier-1) );
+						bonuses.add(myNode.getMyValue() * (multiplier-1) );
 					}
 					possibleWinC += (tempWin * getStake(getNevent()-1 ) ); //getStake(0) );
 					bonusAddedC += (tempBonus * getStake(getNevent()-1 ) ); //getStake(0) );
@@ -141,11 +151,19 @@ public class MySlip {
 					result += nodeList.size();
 					for (MyNode myNode : nodeList) {
 						double multiplier = completeDag.getMultiplierFromBonusTable(Utils.nElementsOverThr(Lists.newArrayList(myNode), completeDag.getBonusTable().getOddsThr()));
-						completeDag.getRowWins().get(1).add(myNode.getMyValue() * multiplier);
+						completeDag.getRowWins().get(1).put(myNode.getID(), myNode.getMyValue() * multiplier);
+
+						Double maxOddOrDefault = completeDag.getMaxOdds().getOrDefault(1, 0.0);
+						completeDag.getMaxOdds().put(1, Double.max(maxOddOrDefault,  myNode.getMyValue() * multiplier));
+
+						Map<String, List<MyNode>> combAtRow = completeDag.getCombz().getOrDefault(1, Maps.newHashMap());
+						combAtRow.put(myNode.getID(), Lists.newArrayList(myNode));
+						completeDag.getCombz().put(1, combAtRow);
 						//log combz
 						//log.debug( (myNode.getID()+ "/" + (myNode.getMyValue() * multiplier)).replace(".",",") );
 						tempWin += (myNode.getMyValue() * multiplier);
 						tempBonus += (myNode.getMyValue() * (multiplier-1) );
+						bonuses.add(myNode.getMyValue() * (multiplier-1) );
 					}
 					possibleWinC += (tempWin * getStake(getNevent()-1 ) ); //getStake(0) );
 					bonusAddedC += (tempBonus * getStake(getNevent()-1 ) ); //getStake(0) );
@@ -156,7 +174,6 @@ public class MySlip {
 
 
 
-//		List<List<Integer>> combz = Utils.getAllCombs(eventIDs, k);
 		List<List<Integer>> combz = Utils.getAllCombs(slipRows.size()+1, k);
 
 		for (List<Integer> comb : combz) {
@@ -176,9 +193,12 @@ public class MySlip {
 					result += tempDag.countPaths(myNode, myNode1);
 				}
 			}
-			completeDag.setRowWins(Utils.mergeCollectionMaps(completeDag.getRowWins(), tempDag.getRowWins()));
+			completeDag.setRowWins(Utils.mergeMapOfMaps(completeDag.getRowWins(), tempDag.getRowWins()));
+			completeDag.getMaxOdds().putAll(tempDag.getMaxOdds());
+			completeDag.setCombz(Utils.mergeMapOfMaps(completeDag.getCombz(), tempDag.getCombz()));
 			possibleWinC += (tempDag.getPossibleWin() * getStake(getNevent()-k)); //getStake(k-1));
 			bonusAddedC += (tempDag.getBonusAdded() * getStake(getNevent()-k)); //getStake(k-1));
+			bonuses.addAll(tempDag.getBonuses());
 		}
 
 		return result;
@@ -186,11 +206,30 @@ public class MySlip {
 
 	public OutputObj writeNple(List<InputRow> oddsRows){
 		OutputObj result = new OutputObj();
-		//for (int i = 0; i < slipRows.size(); i++){
-//				int index = slipRows.size() - i;
+		double minOdds = Double.MAX_VALUE;
+		double maxOdds = Double.MIN_VALUE;
+
 		for (int i = slipRows.size(); i > 0; i--){
 			int kpla = getKpla(i, oddsRows);
 			Double currentStake = getStake(slipRows.size() - i);//getStake(i - 1);
+			double maxWin = 0.0;
+
+			if (kpla > 0){
+				minOdds = Double.min(minOdds, completeDag.getRowWins().get(i).values().stream().mapToDouble(Double::doubleValue).min().getAsDouble());
+				maxOdds = Double.max(maxOdds, completeDag.getRowWins().get(i).values().stream().mapToDouble(Double::doubleValue).max().getAsDouble());
+				if (!isSystemIntegral(oddsRows)) {
+					result.getOutputRowList().add(new OutputRow(
+							Utils.getNameFromNumber(i),
+							kpla,
+							completeDag.getRowWins().get(i).values().stream().mapToDouble(Double::doubleValue).sum() * currentStake, //todo rundown2
+							completeDag.getRowWins().get(i).values().stream().mapToDouble(Double::doubleValue).min().getAsDouble() * currentStake,
+							kpla * currentStake
+					));
+				} else {
+
+				}
+			}
+
 			result.getOutputRowList().add(new OutputRow(
 					Utils.getNameFromNumber(i),
 					kpla,
@@ -203,6 +242,13 @@ public class MySlip {
 		result.setPossibleWin(possibleWinC);
 		result.setBonusAdded(bonusAddedC);
 		return result;
+	}
+
+	private boolean isSystemIntegral(List<InputRow> oddsRows) {
+		for (InputRow oddsRow : oddsRows) {
+			if (oddsRow.getList().size() > 1) return true;
+		}
+		return false;
 	}
 
 	private Double getStake(int index){

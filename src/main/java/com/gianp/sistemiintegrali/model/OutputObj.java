@@ -11,8 +11,10 @@ import java.util.List;
 public class OutputObj {
 
 	private List<OutputRow> outputRowList = Lists.newArrayList();
-	private double possibleWin;
-	private double bonusAdded;
+	private double minOdds;
+	private double maxOdds;
+	private double minBonus;
+	private double maxBonus;
 
 
 }

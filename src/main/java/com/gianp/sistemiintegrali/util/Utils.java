@@ -1,10 +1,7 @@
 package com.gianp.sistemiintegrali.util;
 
 import com.gianp.sistemiintegrali.model.MyNode;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import org.paukov.combinatorics3.Generator;
 
 import java.util.List;
@@ -36,16 +33,32 @@ public class Utils {
 		return result;
 	}
 
-	public static Map<Integer, List<Double>> mergeCollectionMaps(Map<Integer, List<Double>> m1, Map<Integer, List<Double>> m2){
-		Map<Integer, List<Double>> result = Maps.newHashMap();
+//	public static Map<Integer, Map<String, Double>> mergeMapOfMaps(Map<Integer, Map<String, Double>> m1, Map<Integer, Map<String, Double>> m2){
+//		Map<Integer, Map<String, Double>> result = Maps.newHashMap();
+//
+//		m1.forEach((integer, map) -> {
+//			result.put(integer, Maps.newHashMap(map));
+//		});
+//
+//		m2.forEach((integer, map) -> {
+//			Map<String, Double> orDefault = result.getOrDefault(integer, Maps.newHashMap());
+//			orDefault.putAll(map);
+//			result.put(integer, orDefault);
+//		});
+//
+//		return result;
+//	}
 
-		m1.forEach((integer, doubleList) -> {
-			result.put(integer, Lists.newArrayList(doubleList));
+	public static <T> Map<Integer, Map<String, T>> mergeMapOfMaps(Map<Integer, Map<String, T>> m1, Map<Integer, Map<String, T>> m2){
+		Map<Integer, Map<String, T>> result = Maps.newHashMap();
+
+		m1.forEach((integer, map) -> {
+			result.put(integer, Maps.newHashMap(map));
 		});
 
-		m2.forEach((integer, doubleList) -> {
-			List<Double> orDefault = result.getOrDefault(integer, Lists.newArrayList());
-			orDefault.addAll(doubleList);
+		m2.forEach((integer, map) -> {
+			Map<String, T> orDefault = result.getOrDefault(integer, Maps.newHashMap());
+			orDefault.putAll(map);
 			result.put(integer, orDefault);
 		});
 

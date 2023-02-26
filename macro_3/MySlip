@@ -179,15 +179,17 @@ Public Function getKpla(k As Variant) As Variant
                          multiplier = completeDAG.bTable.multipliers(NElementsOverThr(ArrayToCollection(Array(completeDAG.Vertices(key))), completeDAG.bTable.oddsThr))
                     End If
                     Set tempDict = CreateObject("Scripting.Dictionary")
-                    tempDict(completeDAG.Vertices(key).ID) = completeDAG.Vertices(key).My_Value * multiplier
-                    Set completeDAG.rowWins(1) = mergeDicts(completeDAG.rowWins(1), tempDict)
+                    tempDict(completeDAG.Vertices(key).ID) = completeDAG.Vertices(key).My_Value * multiplier //rowWins è ora una mappa
+                    Set completeDAG.rowWins(1) = mergeDicts(completeDAG.rowWins(1), tempDict) //mergia con quelle già presenti nel dag
                     
+		    //si porta traccia del maxOdds (ma forse, basterebbe fare il max di rowWins)
                     If completeDAG.maxOdds.exists(1) Then
                          completeDAG.maxOdds(1) = WorksheetFunction.Max(completeDAG.maxOdds(1), completeDAG.Vertices(key).My_Value * multiplier)
                     Else
-                         completeDAG.maxOdds(1) = completeDAG.Vertices(key).My_Value * multiplier
+                         completeDAG.maxOdds(1) = completeDAG.Vertices(key).My_Value * multiplier 
                     End If
                     
+		    // setta al DAG le combz (ma dovrebbero già esserci nel DAG)
                     Set tempDict = CreateObject("Scripting.Dictionary")
                     Set tempDict(completeDAG.Vertices(key).ID & "/") = New Collection
                     tempDict(completeDAG.Vertices(key).ID & "/").Add completeDAG.Vertices(key)

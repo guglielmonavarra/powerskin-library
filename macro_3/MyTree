@@ -148,24 +148,24 @@ Public Sub countPathsUtil(id1 As Variant, id2 As Variant, pathCountIn As Variant
         End If
         possibleWin = possibleWin + cumOdds.My_Value * multiplier
         bonusAdded = bonusAdded + cumOdds.My_Value * (multiplier - 1)
-        bonuses.Add cumOdds.My_Value * (multiplier - 1)
+        bonuses.Add cumOdds.My_Value * (multiplier - 1) //salvare nella collection bonuses i bonus
         If Not rowWins.exists(nodeChain.Count) Then
-          Set rowWins(nodeChain.Count) = CreateObject("Scripting.Dictionary")
+          Set rowWins(nodeChain.Count) = CreateObject("Scripting.Dictionary") //rowWins è ora una mappa
         End If
-        Set tempDict1 = rowWins(nodeChain.Count)
-        tempDict1(nodeChainToStr(nodeChain)) = cumOdds.My_Value * multiplier
-        Set rowWins(nodeChain.Count) = tempDict1
+        Set tempDict1 = rowWins(nodeChain.Count) //rowWins è ora una mappa
+        tempDict1(nodeChainToStr(nodeChain)) = cumOdds.My_Value * multiplier //rowWins è ora una mappa
+        Set rowWins(nodeChain.Count) = tempDict1 //rowWins è ora una mappa
         
         If maxOdds.exists(nodeChain.Count) Then
           maxOdds(nodeChain.Count) = WorksheetFunction.Max(maxOdds(nodeChain.Count), nodeChainMax(nodeChain))
         Else
-          maxOdds(nodeChain.Count) = nodeChainMax(nodeChain)
+          maxOdds(nodeChain.Count) = nodeChainMax(nodeChain)   //in maxOdds è ora presente il valore piu alto della chain
         End If
         
         If dictCombz.exists(nodeChain.Count) Then
           Set dictCombz(nodeChain.Count) = mergeDictsOfCollections(dictCombz(nodeChain.Count), nodeChainToDict(nodeChain))
         Else
-          Set dictCombz(nodeChain.Count) = nodeChainToDict(nodeChain)
+          Set dictCombz(nodeChain.Count) = nodeChainToDict(nodeChain)  //salviamo la chain in dictCombz
         End If
         
         If isSaveCombz() Then
