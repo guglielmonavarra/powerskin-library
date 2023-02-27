@@ -207,8 +207,8 @@ public class MySlip {
 
 	public OutputObj writeNple(List<InputRow> oddsRows){
 		OutputObj result = new OutputObj();
-		double minOdds = Double.MAX_VALUE;
-		double maxOdds = Double.MIN_VALUE;
+		//double minOdds = Double.MAX_VALUE;
+		//double maxOdds = Double.MIN_VALUE;
 
 		for (int i = slipRows.size(); i > 0; i--){
 			int kpla = getKpla(i, oddsRows);
@@ -217,8 +217,8 @@ public class MySlip {
 			double maxWin = 0.0;
 
 			if (kpla > 0){
-				minOdds = Double.min(minOdds, completeDag.getRowWins().get(i).values().stream().mapToDouble(Double::doubleValue).min().getAsDouble());
-				maxOdds = Double.max(maxOdds, completeDag.getRowWins().get(i).values().stream().mapToDouble(Double::doubleValue).max().getAsDouble());
+//				minOdds = Double.min(minOdds, completeDag.getRowWins().get(i).values().stream().mapToDouble(Double::doubleValue).min().getAsDouble());
+//				maxOdds = Double.max(maxOdds, completeDag.getRowWins().get(i).values().stream().mapToDouble(Double::doubleValue).max().getAsDouble());
 				if (!isSystemIntegral(oddsRows)) {
 					result.getOutputRowList().add(new OutputRow(
 							Utils.getNameFromNumber(i),

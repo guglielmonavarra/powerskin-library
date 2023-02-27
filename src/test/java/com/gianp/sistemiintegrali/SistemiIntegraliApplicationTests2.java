@@ -213,6 +213,78 @@ class SistemiIntegraliApplicationTests2 {
 		assertEquals(8.35, tracker.getMinOdds().doubleValue(), 0.01);
 		assertEquals(28.50, tracker.getMaxOdds().doubleValue(), 0.01);
 
+
+
+		//mi aspetto che nulla cambia se aggiungo un bet, e poi lo rimuovo
+		BetCouponDto bet3 = new BetCouponDto(
+				1,
+				"sdf",
+				ScheduleType.PREMATCH,
+				"sel name",
+				55L,
+				666L,
+				new BigDecimal(3.6),
+				"spread",
+				77L,
+				"mark id type",
+				"mark name",
+				13L,
+				"amdi",
+				"evtname",
+				LocalDateTime.now(),
+				5436563L,
+				32L,
+				"sport name",
+				99L,
+				"ctname",
+				99L,
+				"trname",
+				false,
+				"fds",
+				"livecurrenttime",
+				10L
+		);
+
+		tracker = engine.betCouponInteraction(tracker, bet3, SetUnset.SET);
+		tracker = engine.eval(tracker);
+
+		tracker = engine.betCouponInteraction(tracker, bet3, SetUnset.UNSET);
+		tracker = engine.eval(tracker);
+
+
+		//ripeto gli stessi test di sopra, mi aspetto che nulla sia cambiato
+		assertEquals(3, tracker.getNumEvents());
+		assertEquals(2, tracker.getMultiplier());
+
+		assertEquals(evtId1, tracker.getEvents().get(0).getId());
+		assertEquals(2, tracker.getEvents().get(0).getComb());
+		assertEquals(evtId1, tracker.getEvents().get(1).getId());
+		assertEquals(2, tracker.getEvents().get(1).getComb());
+		assertEquals(evtId2, tracker.getEvents().get(2).getId());
+		assertEquals(1, tracker.getEvents().get(2).getComb());
+
+		assertEquals(2, tracker.getSystem().size());
+
+		assertEquals("Double", tracker.getSystem().get(0).getType());
+		assertEquals(2, tracker.getSystem().get(0).getCol());
+		assertEquals(114, tracker.getSystem().get(0).getMaxWin().doubleValue(), 0.01);
+		assertEquals(33.4, tracker.getSystem().get(0).getMinWin().doubleValue(), 0.01);
+		assertEquals(8, tracker.getSystem().get(0).getToPay().doubleValue(), 0.01);
+
+		//ora ha scommesso anche sul single, la riga single è ora presente
+		assertEquals("Single", tracker.getSystem().get(1).getType());
+		assertEquals(2, tracker.getSystem().get(1).getCol());
+		assertEquals(4.27, tracker.getSystem().get(1).getMaxWin().doubleValue(), 0.01);
+		assertEquals(1.25, tracker.getSystem().get(1).getMinWin().doubleValue(), 0.01);
+		assertEquals(1.5, tracker.getSystem().get(1).getToPay().doubleValue(), 0.01);
+
+		//totali
+		assertEquals(1.25, tracker.getMinWin().doubleValue(), 0.01);
+		assertEquals(118.27, tracker.getMaxWin().doubleValue(), 0.01);
+		assertEquals(0, tracker.getMinBonus().doubleValue(), 0.01);
+		assertEquals(0, tracker.getMaxBonus().doubleValue(), 0.01);
+		assertEquals(8.35, tracker.getMinOdds().doubleValue(), 0.01);
+		assertEquals(28.50, tracker.getMaxOdds().doubleValue(), 0.01);
 	}
 
 	@Test
