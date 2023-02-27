@@ -15,6 +15,8 @@ public class OutputObj {
 	private double maxOdds;
 	private double minBonus;
 	private double maxBonus;
+	private double minWin;
+	private double maxWin;
 
 
 }

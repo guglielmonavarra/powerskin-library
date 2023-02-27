@@ -6,6 +6,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import lombok.Data;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -212,6 +213,7 @@ public class MySlip {
 		for (int i = slipRows.size(); i > 0; i--){
 			int kpla = getKpla(i, oddsRows);
 			Double currentStake = getStake(slipRows.size() - i);//getStake(i - 1);
+			if (Double.valueOf(0).equals(currentStake)) continue; //non attivo
 			double maxWin = 0.0;
 
 			if (kpla > 0){
@@ -226,21 +228,64 @@ public class MySlip {
 							kpla * currentStake
 					));
 				} else {
+					final double[] cumWin = {0.0};
+					Map<String, List<MyNode>> combzOfI = completeDag.getCombz().get(i);
+					combzOfI.forEach((nodeChainString, nodeChain) -> {
+						if (containsMaxOdds(oddsRows, nodeChainString)){
+							double multiplier = completeDag.getMultiplierFromBonusTable(Utils.nElementsOverThr(nodeChain, completeDag.getBonusTable().getOddsThr()));
+							double cumOdds = 1.0;
+							for (MyNode myNode : nodeChain) {
+								cumOdds *= myNode.getMyValue();
+							}
+							cumOdds = cumOdds * multiplier * currentStake;
+							cumWin[0] += cumOdds;
+						}
+					});
 
+					result.getOutputRowList().add(new OutputRow(
+							Utils.getNameFromNumber(i),
+							kpla,
+							cumWin[0],
+							completeDag.getRowWins().get(i).values().stream().mapToDouble(Double::doubleValue).min().getAsDouble() * currentStake,
+							kpla * currentStake
+					));
 				}
 			}
 
-			result.getOutputRowList().add(new OutputRow(
-					Utils.getNameFromNumber(i),
-					kpla,
-					kpla > 0 ? completeDag.getRowWins().get(i).stream().mapToDouble(Double::doubleValue).max().getAsDouble() * currentStake : null,
-					kpla > 0 ? completeDag.getRowWins().get(i).stream().mapToDouble(Double::doubleValue).min().getAsDouble() * currentStake : null,
-					kpla * currentStake
-			));
+//			result.getOutputRowList().add(new OutputRow(
+//					Utils.getNameFromNumber(i),
+//					kpla,
+//					kpla > 0 ? completeDag.getRowWins().get(i).stream().mapToDouble(Double::doubleValue).max().getAsDouble() * currentStake : null,
+//					kpla > 0 ? completeDag.getRowWins().get(i).stream().mapToDouble(Double::doubleValue).min().getAsDouble() * currentStake : null,
+//					kpla * currentStake
+//			));
 		}
 
-		result.setPossibleWin(possibleWinC);
-		result.setBonusAdded(bonusAddedC);
+		result.setMinOdds(completeDag.getRowWins().get(getNevent()).values().stream().mapToDouble(Double::doubleValue).min().getAsDouble());
+		result.setMaxOdds(completeDag.getRowWins().get(getNevent()).values().stream().mapToDouble(Double::doubleValue).max().getAsDouble());
+		result.setMinBonus(bonuses.stream().mapToDouble(Double::doubleValue).min().getAsDouble());
+		result.setMaxBonus(bonuses.stream().mapToDouble(Double::doubleValue).max().getAsDouble());
+		result.setMinWin(result.getOutputRowList().stream().mapToDouble(OutputRow::getMinWin).min().getAsDouble());
+		result.setMaxWin(result.getOutputRowList().stream().mapToDouble(OutputRow::getMaxWin).sum());
+		return result;
+	}
+
+	private boolean containsMaxOdds(List<InputRow> oddsRows, String combPath){
+		String[] combIDs = combPath.split("/");
+		List<String> maxPerRowIDs = getMaxPerRowIDs(oddsRows);
+		//return maxPerRowIDs.containsAll(Lists.newArrayList(combIDs));
+		return new HashSet<>(maxPerRowIDs).containsAll(Lists.newArrayList(combIDs));
+	}
+
+	private List<String> getMaxPerRowIDs(List<InputRow> oddsRows){
+		List<String> result = Lists.newArrayList();
+		int evId = 0;
+		for (InputRow oddsRow : oddsRows) {
+			evId++;
+			Double maxOfRow = oddsRow.getList().stream().mapToDouble(Double::doubleValue).max().getAsDouble();
+			int indexOfMax = oddsRow.getList().indexOf(maxOfRow);
+			result.add(evId+","+(indexOfMax+1));
+		}
 		return result;
 	}
 

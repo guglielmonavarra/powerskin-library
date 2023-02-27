@@ -92,6 +92,12 @@ public class Engine {
         tracker.setTotalSign(inputRowListLib.size());
         tracker.setSs(tracker.getNumEvents());
         tracker.setMultiplier(outputObj.getOutputRowList().get(0).getN());
+        tracker.setMinWin(BigDecimal.valueOf(outputObj.getMinWin()));
+        tracker.setMaxWin(BigDecimal.valueOf(outputObj.getMaxWin()));
+        tracker.setMinOdds(BigDecimal.valueOf(outputObj.getMinOdds()));
+        tracker.setMaxOdds(BigDecimal.valueOf(outputObj.getMaxOdds()));
+        tracker.setMinBonus(BigDecimal.valueOf(outputObj.getMinBonus()));
+        tracker.setMaxBonus(BigDecimal.valueOf(outputObj.getMaxBonus()));
         tracker.setSystem(outputObj.getOutputRowList().stream().map(this::couponSystemDtoFromOutputRow).collect(Collectors.toList()));
     }
 

@@ -36,14 +36,23 @@ public class CouponTrackerDto {
     //@ApiModelProperty(value = "Coupon multiplier.")
     private Integer multiplier; // 1 se non integrale. se integrale: valore della prima "n" da lib
     
-    //@ApiModelProperty(value = "Coupon bonus percentage.")
-    private BigDecimal bonusPerc;// da calcolo
+    //@ApiModelProperty(value = "Coupon min bonus")
+    private BigDecimal minBonus;// da calcolo
+
+    //@ApiModelProperty(value = "Coupon max bonus")
+    private BigDecimal maxBonus;// da calcolo
     
-    //@ApiModelProperty(value = "Coupon multiple bonus.")
-    private BigDecimal multipleBonus; //da calcolo
+    //@ApiModelProperty(value = "Coupon min win.")
+    private BigDecimal minWin; //da calcolo
+
+    //@ApiModelProperty(value = "Coupon max win.")
+    private BigDecimal maxWin; //da calcolo
     
-    //@ApiModelProperty(value = "Coupon win pot.")
-    private BigDecimal multipleWinPot; //da calcolo
+    //@ApiModelProperty(value = "Coupon min odds.")
+    private BigDecimal minOdds; //da calcolo
+
+    //@ApiModelProperty(value = "Coupon max odds.")
+    private BigDecimal maxOdds; //da calcolo
     
     //@ApiModelProperty(value = "Coupon total Sign.")
     private Integer totalSign;    //numero di eventId (row)
